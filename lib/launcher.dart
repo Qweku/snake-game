@@ -7,14 +7,13 @@ import 'package:flutter/material.dart';
 import 'gameScreen.dart';
 
 class Launcher extends StatefulWidget {
-  const Launcher({ Key? key }) : super(key: key);
+  const Launcher({Key? key}) : super(key: key);
 
   @override
   _LauncherState createState() => _LauncherState();
 }
 
 class _LauncherState extends State<Launcher> with TickerProviderStateMixin {
-  
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -28,7 +27,6 @@ class _LauncherState extends State<Launcher> with TickerProviderStateMixin {
     _animation = Tween<double>(begin: 0.0, end: 1.2).animate(_controller);
     _controller.forward();
     startTime();
-    
   }
 
   @override
@@ -47,34 +45,31 @@ class _LauncherState extends State<Launcher> with TickerProviderStateMixin {
         context, MaterialPageRoute(builder: (context) => GameScreen()));
   }
 
-
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Center(
-            child: Container(
-              padding:EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                border:Border.all(color:Colors.white)
-              ),
-              child: FadeTransition(
-                opacity:_animation,
-                child: Text('S N A K E  G A M E',style:TextStyle(fontSize:20,color:Colors.white)
+        backgroundColor: theme.primaryColor,
+        body: Stack(
+          children: [
+            Center(
+              child: Container(
+                padding: EdgeInsets.all(20),
+                decoration:
+                    BoxDecoration(border: Border.all(color: theme.primaryColorLight)),
+                child: FadeTransition(
+                  opacity: _animation,
+                  child: Text('S N A K E  G A M E',
+                      style: theme.textTheme.headline4),
                 ),
               ),
-          ),
-          ),
-          Container(
-            alignment: Alignment(0,0.9),
-            child: Text('@ c r e a t e d b y Q w e k u',style:TextStyle(color:Colors.white, fontSize:12)),
-          )
-        ],
-      )
-      
-    );
+            ),
+            Container(
+              alignment: Alignment(0, 0.9),
+              child: Text('@ c r e a t e d b y Q w e k u',
+                  style: theme.textTheme.bodyText2!.copyWith(fontSize:12)),
+            )
+          ],
+        ));
   }
 }
