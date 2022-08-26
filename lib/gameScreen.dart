@@ -4,7 +4,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:snake/ad_helper.dart';
+import 'package:snake/game-functions.dart';
 
 import 'settings.dart';
 
@@ -16,43 +20,62 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  List<int> snakePos = [205, 225, 245];
-  List<int> brick1 = [21, 22, 23, 24, 41, 61, 81];
-  List<int> brick2 = [38, 37, 36, 35, 58, 78, 98];
-  List<int> brick3 = [701, 702, 703, 704, 681, 661, 641];
-  List<int> brick4 = [718, 717, 716, 715, 698, 678, 658];
-  int nSquares = 760;
-  static int speedValue = 300;
-  bool isStarted = false;
-  static var randomNum = Random();
-  int food = randomNum.nextInt(680);
+  BannerAd? bottomAd;
+  bool isLoaded = false;
+   InterstitialAd? interstitialAd;
+  int _numInterstitialLoadAttempts = 0;
+  RewardedAd? rewardedAd;
+  int _numRewardedLoadAttempts = 0;
+
+  RewardedInterstitialAd? rewardedInterstitialAd;
+  int _numRewardedInterstitialLoadAttempts = 0;
   void generateNewFood() {
     food = randomNum.nextInt(680);
   }
 
   void startGame() {
+    tiMer = 250;
     isStarted = true;
-    snakePos = [205, 225, 245];
-    const duration = const Duration(milliseconds: 250);
+    generateNewFood();
+    snakePos = [210, 230, 250];
+    Duration duration = Duration(milliseconds: tiMer);
     Timer.periodic(duration, (timer) {
       updateSnake();
-      highScore();
-      if (
-          gameOver() ||
-          gameOver1() ||
-           gameOver2() ||
-          gameOver3() ||
-          gameOver4()
-          ) {
+      currentScore();
+      if (GameFunction().gameOver() ||
+          GameFunction().gameOver1() ||
+          GameFunction().gameOver2() ||
+          GameFunction().gameOver3() ||
+          GameFunction().gameOver4()) {
+             assetsAudioPlayer.open(Audio('assets/audios/game-over.mp3'));
         timer.cancel();
         isStarted = false;
         _showGameOverScreen();
       }
+      if (score >= 10 && 10 % score == 0) {
+        setState(() {
+          tiMer -= 10;
+        });
+      }
+      if (brick1.contains(food) ||
+          brick2.contains(food) ||
+          brick3.contains(food) ||
+          brick4.contains(food)) {
+        food = food + 100;
+      }
     });
   }
 
-  int score = 0;
-  int highScore() {
+  int setHighScore() {
+    setState(() {
+      if (score > highScore) {
+        highScore = score;
+      }
+    });
+    return highScore;
+  }
+
+  int currentScore() {
     setState(() {
       if (snakePos.length > 1) {
         score = snakePos.length - 3;
@@ -60,6 +83,8 @@ class _GameScreenState extends State<GameScreen> {
     });
     return score;
   }
+
+ 
 
   var dxn = 'down';
   void updateSnake() {
@@ -103,6 +128,7 @@ class _GameScreenState extends State<GameScreen> {
         default:
       }
       if (snakePos.last == food) {
+         eatAudio.open(Audio('assets/audios/eat.mp3'));
         generateNewFood();
       } else {
         snakePos.removeAt(0);
@@ -110,104 +136,76 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  bool gameOver() {
-    for (int i = 0; i < snakePos.length; i++) {
-      int count = 0;
-      for (int j = 0; j < snakePos.length; j++) {
-        if (snakePos[i] == snakePos[j]) {
-          count += 1;
-        }
-        if (count == 2) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  bool gameOver1() {
-    int count = 0;
-    for (int i = 0; i < brick1.length; i++) {
-      
-      if (snakePos[snakePos.length-1] == brick1[i]) {
-        count = 1;
-      }
-      if (count == 1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool gameOver2() {
-   int count = 0;
-    for (int i = 0; i < brick2.length; i++) {
-      
-      if (snakePos[snakePos.length-1] == brick2[i]) {
-        count = 1;
-      }
-      if (count == 1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool gameOver3() {
-     int count = 0;
-    for (int i = 0; i < brick3.length; i++) {
-      
-      if (snakePos[snakePos.length-1] == brick3[i]) {
-        count = 1;
-      }
-      if (count == 1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  bool gameOver4() {
-     int count = 0;
-    for (int i = 0; i < brick4.length; i++) {
-      
-      if (snakePos[snakePos.length-1] == brick4[i]) {
-        count = 1;
-      }
-      if (count == 1) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   void _showGameOverScreen() {
     final theme = Theme.of(context);
+   
     showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return AlertDialog(
-              backgroundColor: Colors.grey[900],
-              title: Center(
-                  child: Text('GAME OVER',
-                      style: theme.textTheme.headline4!
-                          .copyWith(color: theme.cardColor))),
-              content: Text('High score: $score',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyText2),
-              actions: [
-                TextButton(
-                    onPressed: () {
-                      startGame();
-                      Navigator.pop(context);
-                    },
-                    child: Text('Play Again',
-                        style: theme.textTheme.bodyText2!
-                            .copyWith(color: theme.cardColor)))
+          return
+            
+
+              AlertDialog(
+                  backgroundColor: Colors.grey[900],
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(40),
+                      side: BorderSide(width:5,color: Colors.amber)),
+                  title: Center(
+                      child: Text('G A M E  O V E R',
+                          style: theme.textTheme.headline4!
+                              .copyWith(color: Colors.amber))),
+                  // content: Text('High score: $score',
+                  //     textAlign: TextAlign.center,
+                  //     style: theme.textTheme.bodyText2),
+                  actions: [
+                Center(
+                  child: TextButton(
+                      onPressed: () async{
+                        showRewardedAd();
+                        setHighScore();
+                       await assetsAudioPlayer.open(Audio('assets/audios/game-music.mp3'),loopMode: LoopMode.playlist);
+                        Navigator.pop(context);
+                      },
+                      child: Text('Try Again',
+                          style: theme.textTheme.bodyText2)),
+                )
               ]);
         });
   }
+   final assetsAudioPlayer = AssetsAudioPlayer();
+   final eatAudio = AssetsAudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+   createRewardedAd();
+    assetsAudioPlayer.open(Audio('assets/audios/game-music.mp3'),loopMode: LoopMode.playlist);
+    assetsAudioPlayer.play();
+    BannerAd(
+            size: AdSize.banner,
+            adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+            listener: BannerAdListener(onAdLoaded: (ad) {
+              setState(() {
+                isLoaded = true;
+                bottomAd = ad as BannerAd;
+              });
+            }, onAdFailedToLoad: (ad, error) {
+              ad.dispose();
+            }),
+            request: AdRequest())
+        .load();
+  }
+
+    @override
+  void dispose() {
+    super.dispose();
+    MyAds().interstitialAd!.dispose();
+    rewardedAd!.dispose();
+    bottomAd!.dispose();
+    
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -216,136 +214,204 @@ class _GameScreenState extends State<GameScreen> {
       onWillPop: () => _onBackPressed(context),
       child: Scaffold(
           backgroundColor: theme.primaryColor,
-          body: Stack(
-            children: [
-              Column(children: [
-                Expanded(
-                    child: GestureDetector(
-                        onVerticalDragUpdate: (details) {
-                          if (dxn != 'up' && details.delta.dy > 0) {
-                            dxn = 'down';
-                          } else if (dxn != 'down' && details.delta.dy < 0) {
-                            dxn = 'up';
-                          }
-                        },
-                        onHorizontalDragUpdate: (details) {
-                          if (dxn != 'left' && details.delta.dx > 0) {
-                            dxn = 'right';
-                          } else if (dxn != 'right' && details.delta.dx < 0) {
-                            dxn = 'left';
-                          }
-                        },
-                        child: SizedBox(
-                            child: GridView.builder(
-                                physics: NeverScrollableScrollPhysics(),
-                                itemCount: nSquares,
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 20),
-                                itemBuilder: (context, index) {
-                                  if (snakePos.contains(index)) {
-                                    return Center(
-                                        child: Container(
-                                            padding: EdgeInsets.all(2),
-                                            child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                                child: Container(
-                                                    color: theme
-                                                        .primaryColorLight))));
-                                  }
-                                  if (brick1.contains(index)) {
-                                    return Center(
-                                        child: Container(
-                                            padding: EdgeInsets.all(2),
-                                            child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                                child: Container(
-                                                    color: Colors.brown))));
-                                  }
-                                  if (brick3.contains(index)) {
-                                    return Center(
-                                        child: Container(
-                                            padding: EdgeInsets.all(2),
-                                            child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                                child: Container(
-                                                    color: Colors.brown))));
-                                  }
-                                  if (brick2.contains(index)) {
-                                    return Center(
-                                        child: Container(
-                                            padding: EdgeInsets.all(2),
-                                            child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                                child: Container(
-                                                    color: Colors.brown))));
-                                  }
-                                  if (brick4.contains(index)) {
-                                    return Center(
-                                        child: Container(
-                                            padding: EdgeInsets.all(2),
-                                            child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                                child: Container(
-                                                    color: Colors.brown))));
-                                  }
-                                  if (index == food) {
-                                    return Container(
-                                        padding: EdgeInsets.all(2),
-                                        child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                            child: Container(
-                                                color: theme.cardColor)));
-                                  } else {
-                                    return Container(
-                                        padding: EdgeInsets.all(2),
-                                        child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                            child: Container(
-                                                color: theme.primaryColor)));
-                                  }
-                                })))),
-                Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Text('S C O R E : $score',
-                      style: theme.textTheme.bodyText2),
-                )
-              ]),
-              Container(
-                  alignment: Alignment(0, 0),
-                  child: isStarted
-                      ? Container()
-                      : GestureDetector(
-                          onTap: startGame,
-                          child: Container(
-                              padding: EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                      color: theme.primaryColorLight)),
-                              child: Text('START GAME',
-                                  style: theme.textTheme.bodyText2!.copyWith(color:theme.primaryColorLight))),
-                        )),
-              Container(
-                alignment: Alignment(0.9, 1),
-                child:IconButton(
-                    onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => Settings()));
-                    },
-                    icon: Icon(Icons.settings, color: theme.primaryColorLight)),
-              )
-            ],
+          body: SafeArea(
+            child: Stack(
+              children: [
+                Column(children: [
+                  Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text('S C O R E : $score',
+                            style: theme.textTheme.bodyText2),
+                        Text('H I G H S C O R E : $highScore',
+                            style: theme.textTheme.bodyText2),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                      child: GestureDetector(
+                          onVerticalDragUpdate: (details) {
+                            if (dxn != 'up' && details.delta.dy > 0) {
+                              dxn = 'down';
+                            } else if (dxn != 'down' && details.delta.dy < 0) {
+                              dxn = 'up';
+                            }
+                          },
+                          onHorizontalDragUpdate: (details) {
+                            if (dxn != 'left' && details.delta.dx > 0) {
+                              dxn = 'right';
+                            } else if (dxn != 'right' && details.delta.dx < 0) {
+                              dxn = 'left';
+                            }
+                          },
+                          child: SizedBox(
+                              child: GridView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemCount: nSquares,
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 20),
+                                  itemBuilder: (context, index) {
+                                    if (snakePos.contains(index)) {
+                                      return Center(
+                                          child: Container(
+                                              padding: EdgeInsets.all(2),
+                                              child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  child: Container(
+                                                      color:  Color.fromARGB(255, 0, 132, 255)))));
+                                    }
+                                    if (brick1.contains(index)) {
+                                      return Center(
+                                          child: Container(
+                                              padding: EdgeInsets.all(2),
+                                              child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  child: Container(
+                                                      color: Colors.brown))));
+                                    }
+                                    if (brick3.contains(index)) {
+                                      return Center(
+                                          child: Container(
+                                              padding: EdgeInsets.all(2),
+                                              child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  child: Container(
+                                                      color: Colors.brown))));
+                                    }
+                                    if (brick2.contains(index)) {
+                                      return Center(
+                                          child: Container(
+                                              padding: EdgeInsets.all(2),
+                                              child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  child: Container(
+                                                      color: Colors.brown))));
+                                    }
+                                    if (brick4.contains(index)) {
+                                      return Center(
+                                          child: Container(
+                                              padding: EdgeInsets.all(2),
+                                              child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  child: Container(
+                                                      color: Colors.brown))));
+                                    }
+                                    if (index == food) {
+                                      return Container(
+                                          padding: EdgeInsets.all(2),
+                                          child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                              child: Container(
+                                                  color: Colors.amber)));
+                                    } else {
+                                      return Container(
+                                          padding: EdgeInsets.all(2),
+                                          child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                              child: Container(
+                                                  color: theme.primaryColor)));
+                                    }
+                                  })))),
+                  Container(
+                    height: isLoaded ? bottomAd!.size.height.toDouble() : 0,
+                    width: isLoaded ? bottomAd!.size.width.toDouble() : 0,
+                    color: isLoaded ? Colors.white : Colors.transparent,
+                    child: isLoaded ? AdWidget(ad: bottomAd!) : SizedBox(),
+                  )
+                ]),
+                Container(
+                    alignment: Alignment(0, 0),
+                    child: isStarted
+                        ? Container()
+                        : GestureDetector(
+                            onTap: startGame,
+                            child: Container(
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                        color: theme.primaryColorLight)),
+                                child: Text('START GAME',
+                                    style: theme.textTheme.bodyText2!.copyWith(
+                                        color: theme.primaryColorLight))),
+                          )),
+                // Container(
+                //   alignment: Alignment(0.9, 1),
+                //   child: IconButton(
+                //       onPressed: () {
+                //         Navigator.push(
+                //             context,
+                //             MaterialPageRoute(
+                //                 builder: (context) => Settings()));
+                //       },
+                //       icon:
+                //           Icon(Icons.settings, color: theme.primaryColorLight)),
+                // )
+              ],
+            ),
           )),
     );
   }
+
+    void createRewardedAd() {
+    RewardedAd.load(
+        adUnitId: 'ca-app-pub-3940256099942544/5224354917',
+        request: AdRequest(),
+        rewardedAdLoadCallback: RewardedAdLoadCallback(
+          onAdLoaded: (RewardedAd ad) {
+            print('$ad loaded.');
+            rewardedAd = ad;
+            _numRewardedLoadAttempts = 0;
+          },
+          onAdFailedToLoad: (LoadAdError error) {
+            print('RewardedAd failed to load: $error');
+            rewardedAd = null;
+            _numRewardedLoadAttempts += 1;
+            if (_numRewardedLoadAttempts < maxFailedLoadAttempts) {
+              createRewardedAd();
+            }
+          },
+        ));
+  }
+
+  void showRewardedAd() {
+    if (rewardedAd == null) {
+      print('Warning: attempt to show rewarded before loaded.');
+      return;
+    }
+    rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (RewardedAd ad) =>
+          print('ad onAdShowedFullScreenContent.'),
+      onAdDismissedFullScreenContent: (RewardedAd ad) {
+        print('$ad onAdDismissedFullScreenContent.');
+        ad.dispose();
+      createRewardedAd();
+      },
+      onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+        print('$ad onAdFailedToShowFullScreenContent: $error');
+        ad.dispose();
+        createRewardedAd();
+      },
+    );
+
+    rewardedAd!.setImmersiveMode(true);
+    rewardedAd!.show(
+        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+      print('$ad with reward $RewardItem(${reward.amount}, ${reward.type})');
+    });
+    rewardedAd = null;
+  }
+
 
   void _settingModalBottomSheet(context) {
     showModalBottomSheet(
