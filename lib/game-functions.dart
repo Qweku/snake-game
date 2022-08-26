@@ -16,7 +16,7 @@ List<int> snakePos = [210, 230, 250];
   int highScore = 0;
   int tiMer = 250;
   var randomNum = Random();
-  int food = randomNum.nextInt(680);
+  int food = randomNum.nextInt(600);
 
 
   class GameFunction{

@@ -30,7 +30,19 @@ class _GameScreenState extends State<GameScreen> {
   RewardedInterstitialAd? rewardedInterstitialAd;
   int _numRewardedInterstitialLoadAttempts = 0;
   void generateNewFood() {
-    food = randomNum.nextInt(680);
+     if (brick1.contains(food) ||
+          brick2.contains(food)
+         ) {
+            food = randomNum.nextInt(680)+100;
+       
+      }else if( brick3.contains(food) ||
+          brick4.contains(food)){
+            food = randomNum.nextInt(680)-100;
+          }
+      else{
+         food = randomNum.nextInt(680);
+      }
+   
   }
 
   void startGame() {
@@ -63,15 +75,7 @@ class _GameScreenState extends State<GameScreen> {
           tiMer -= 10;
         });
       }
-      if (brick1.contains(food) ||
-          brick2.contains(food) ||
-          brick3.contains(food) ||
-          brick4.contains(food)) {
-            setState(() {
-               food = food + 100;
-            });
-       
-      }
+     
     });
   }
 
@@ -394,7 +398,7 @@ class _GameScreenState extends State<GameScreen> {
                                               borderRadius:
                                                   BorderRadius.circular(5),
                                               child: Container(
-                                                  color: Colors.black)));
+                                                  color: Color.fromARGB(255, 0, 0, 0))));
                                     }
                                   })))),
                                   SizedBox(height:20),
