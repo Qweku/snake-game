@@ -34,6 +34,8 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void startGame() {
+     assetsAudioPlayer.open(Audio('assets/audios/game-music.mp3'),loopMode: LoopMode.playlist);
+    
     tiMer = 250;
     isStarted = true;
     generateNewFood();
@@ -51,6 +53,10 @@ class _GameScreenState extends State<GameScreen> {
         timer.cancel();
         isStarted = false;
         _showGameOverScreen();
+      }else{
+        if(isPaused==true){
+          timer.cancel();
+        }
       }
       if (score >= 10 && 10 % score == 0) {
         setState(() {
@@ -61,7 +67,10 @@ class _GameScreenState extends State<GameScreen> {
           brick2.contains(food) ||
           brick3.contains(food) ||
           brick4.contains(food)) {
-        food = food + 100;
+            setState(() {
+               food = food + 100;
+            });
+       
       }
     });
   }
@@ -84,7 +93,43 @@ class _GameScreenState extends State<GameScreen> {
     return score;
   }
 
- 
+ void playGame(){
+  isStarted = true;
+  isPaused =false;
+   Duration duration = Duration(milliseconds: tiMer);
+    Timer.periodic(duration, (timer) {
+      updateSnake();
+      currentScore();
+      if (GameFunction().gameOver() ||
+          GameFunction().gameOver1() ||
+          GameFunction().gameOver2() ||
+          GameFunction().gameOver3() ||
+          GameFunction().gameOver4()) {
+             assetsAudioPlayer.open(Audio('assets/audios/game-over.mp3'));
+        timer.cancel();
+        isStarted = false;
+        _showGameOverScreen();
+      }else{
+        if(isPaused==true){
+          timer.cancel();
+        }
+      }
+      if (score >= 10 && 10 % score == 0) {
+        setState(() {
+          tiMer -= 10;
+        });
+      }
+      if (brick1.contains(food) ||
+          brick2.contains(food) ||
+          brick3.contains(food) ||
+          brick4.contains(food)) {
+            setState(() {
+               food = food + 100;
+            });
+       
+      }
+    });
+ }
 
   var dxn = 'down';
   void updateSnake() {
@@ -161,17 +206,25 @@ class _GameScreenState extends State<GameScreen> {
                   actions: [
                 Center(
                   child: TextButton(
-                      onPressed: () async{
+                      onPressed: () {
                         showRewardedAd();
+                       
                         setHighScore();
-                       await assetsAudioPlayer.open(Audio('assets/audios/game-music.mp3'),loopMode: LoopMode.playlist);
-                        Navigator.pop(context);
+                       Navigator.pop(context);
                       },
                       child: Text('Try Again',
                           style: theme.textTheme.bodyText2)),
                 )
               ]);
         });
+  }
+  bool soundToggle = false;
+  bool isPaused = false;
+  void pauseGame(){
+    setState(() {
+      isPaused = true;
+      //isStarted = false;
+    });
   }
    final assetsAudioPlayer = AssetsAudioPlayer();
    final eatAudio = AssetsAudioPlayer();
@@ -180,8 +233,7 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
    createRewardedAd();
-    assetsAudioPlayer.open(Audio('assets/audios/game-music.mp3'),loopMode: LoopMode.playlist);
-    assetsAudioPlayer.play();
+   
     BannerAd(
             size: AdSize.banner,
             adUnitId: 'ca-app-pub-3940256099942544/6300978111',
@@ -210,6 +262,8 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    double height= MediaQuery.of(context).size.height;
+     double width= MediaQuery.of(context).size.width;
     return WillPopScope(
       onWillPop: () => _onBackPressed(context),
       child: Scaffold(
@@ -221,12 +275,33 @@ class _GameScreenState extends State<GameScreen> {
                   Padding(
                     padding: EdgeInsets.all(20),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        GestureDetector(
+                          onTap:pauseGame,
+                          child: Icon(Icons.pause_circle,color: Colors.white,)),
                         Text('S C O R E : $score',
                             style: theme.textTheme.bodyText2),
                         Text('H I G H S C O R E : $highScore',
                             style: theme.textTheme.bodyText2),
+                            soundToggle?GestureDetector(
+                              onTap:(){
+                                setState(() {
+                                  soundToggle = false; 
+                                   assetsAudioPlayer.playOrPause();
+                                });
+                               
+                              },
+                              child: Icon(Icons.music_off,color: Colors.white,)):
+                             GestureDetector(
+                              onTap: (){
+                                setState(() {
+                                  soundToggle=true;
+                                  assetsAudioPlayer.playOrPause();
+                                });
+                                
+                              },
+                              child: Icon(Icons.music_note,color: Colors.white,))
                       ],
                     ),
                   ),
@@ -319,9 +394,10 @@ class _GameScreenState extends State<GameScreen> {
                                               borderRadius:
                                                   BorderRadius.circular(5),
                                               child: Container(
-                                                  color: theme.primaryColor)));
+                                                  color: Colors.black)));
                                     }
                                   })))),
+                                  SizedBox(height:20),
                   Container(
                     height: isLoaded ? bottomAd!.size.height.toDouble() : 0,
                     width: isLoaded ? bottomAd!.size.width.toDouble() : 0,
@@ -329,6 +405,17 @@ class _GameScreenState extends State<GameScreen> {
                     child: isLoaded ? AdWidget(ad: bottomAd!) : SizedBox(),
                   )
                 ]),
+                isPaused?Container(
+                  alignment: Alignment(0,0),
+                  child: Container(
+                    height: height,
+                    width:width,
+                    color: Colors.black.withOpacity(0.4),
+                    child: GestureDetector(
+                      onTap: playGame,
+                      child: Icon(Icons.play_circle,size:50,color:Colors.white)),
+                  ),
+                ):Container(),
                 Container(
                     alignment: Alignment(0, 0),
                     child: isStarted
