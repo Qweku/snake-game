@@ -38,7 +38,7 @@ class _MyAppState extends State<MyApp> {
       defaultThemeMode: ThemeMode.system,
       builder: (context, regularTheme, darkTheme, themeMode) {
         return MaterialApp(
-          title: 'Snake Game',
+          title: 'Hungry Snake',
           debugShowCheckedModeBanner: false,
          theme: regularTheme,
         darkTheme: darkTheme,

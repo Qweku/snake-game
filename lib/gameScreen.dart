@@ -58,6 +58,7 @@ class _GameScreenState extends State<GameScreen> {
         assetsAudioPlayer.open(Audio('assets/audios/game-over.mp3'));
         timer.cancel();
         isStarted = false;
+         snakePos = [210, 230, 250];
         _showGameOverScreen();
       } else {
         if (isPaused == true) {
@@ -105,6 +106,7 @@ class _GameScreenState extends State<GameScreen> {
         assetsAudioPlayer.open(Audio('assets/audios/game-over.mp3'));
         timer.cancel();
         isStarted = false;
+         snakePos = [210, 230, 250];
         _showGameOverScreen();
       } else {
         if (isPaused == true) {
@@ -268,7 +270,7 @@ class _GameScreenState extends State<GameScreen> {
               children: [
                 Column(children: [
                   Padding(
-                    padding: EdgeInsets.all(20),
+                    padding: EdgeInsets.all(10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -398,11 +400,10 @@ class _GameScreenState extends State<GameScreen> {
                                               borderRadius:
                                                   BorderRadius.circular(5),
                                               child: Container(
-                                                  color: Color.fromARGB(
-                                                      255, 0, 0, 0))));
+                                                  color: Color.fromARGB(255, 0, 0, 0))));
                                     }
                                   })))),
-                  SizedBox(height: 20),
+                  //SizedBox(height: 20),
                   Container(
                     height: isLoaded ? bottomAd!.size.height.toDouble() : 0,
                     width: isLoaded ? bottomAd!.size.width.toDouble() : 0,
