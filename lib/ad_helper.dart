@@ -57,7 +57,7 @@ class MyAds{
 
    void createInterstitialAd() {
     InterstitialAd.load(
-        adUnitId:'ca-app-pub-3940256099942544/1033173712',
+        adUnitId:interstitialAd==null?'ca-app-pub-3940256099942544/1033173712':'ca-app-pub-1282975341841237/8890582268',
         request: AdRequest(),
         adLoadCallback: InterstitialAdLoadCallback(
           onAdLoaded: (InterstitialAd ad) {

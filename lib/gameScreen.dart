@@ -22,32 +22,26 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   BannerAd? bottomAd;
   bool isLoaded = false;
-   InterstitialAd? interstitialAd;
+  InterstitialAd? interstitialAd;
   int _numInterstitialLoadAttempts = 0;
   RewardedAd? rewardedAd;
-  int _numRewardedLoadAttempts = 0;
+ // int _numRewardedLoadAttempts = 0;
 
   RewardedInterstitialAd? rewardedInterstitialAd;
-  int _numRewardedInterstitialLoadAttempts = 0;
+ // int _numRewardedInterstitialLoadAttempts = 0;
   void generateNewFood() {
-     if (brick1.contains(food) ||
-          brick2.contains(food)
-         ) {
-            food = randomNum.nextInt(680)+100;
-       
-      }else if( brick3.contains(food) ||
-          brick4.contains(food)){
-            food = randomNum.nextInt(680)-100;
-          }
-      else{
-         food = randomNum.nextInt(680);
-      }
-   
+    food = randomNum.nextInt(680);
+    if (brick1.contains(food) || brick2.contains(food)) {
+      food += 100;
+    } else if (brick3.contains(food) || brick4.contains(food)) {
+      food -=100;
+    } 
   }
 
   void startGame() {
-     assetsAudioPlayer.open(Audio('assets/audios/game-music.mp3'),loopMode: LoopMode.playlist);
-    
+    assetsAudioPlayer.open(Audio('assets/audios/game-music.mp3'),
+        loopMode: LoopMode.playlist);
+
     tiMer = 250;
     isStarted = true;
     generateNewFood();
@@ -61,12 +55,12 @@ class _GameScreenState extends State<GameScreen> {
           GameFunction().gameOver2() ||
           GameFunction().gameOver3() ||
           GameFunction().gameOver4()) {
-             assetsAudioPlayer.open(Audio('assets/audios/game-over.mp3'));
+        assetsAudioPlayer.open(Audio('assets/audios/game-over.mp3'));
         timer.cancel();
         isStarted = false;
         _showGameOverScreen();
-      }else{
-        if(isPaused==true){
+      } else {
+        if (isPaused == true) {
           timer.cancel();
         }
       }
@@ -75,7 +69,6 @@ class _GameScreenState extends State<GameScreen> {
           tiMer -= 10;
         });
       }
-     
     });
   }
 
@@ -97,10 +90,10 @@ class _GameScreenState extends State<GameScreen> {
     return score;
   }
 
- void playGame(){
-  isStarted = true;
-  isPaused =false;
-   Duration duration = Duration(milliseconds: tiMer);
+  void playGame() {
+    isStarted = true;
+    isPaused = false;
+    Duration duration = Duration(milliseconds: tiMer);
     Timer.periodic(duration, (timer) {
       updateSnake();
       currentScore();
@@ -109,12 +102,12 @@ class _GameScreenState extends State<GameScreen> {
           GameFunction().gameOver2() ||
           GameFunction().gameOver3() ||
           GameFunction().gameOver4()) {
-             assetsAudioPlayer.open(Audio('assets/audios/game-over.mp3'));
+        assetsAudioPlayer.open(Audio('assets/audios/game-over.mp3'));
         timer.cancel();
         isStarted = false;
         _showGameOverScreen();
-      }else{
-        if(isPaused==true){
+      } else {
+        if (isPaused == true) {
           timer.cancel();
         }
       }
@@ -127,13 +120,12 @@ class _GameScreenState extends State<GameScreen> {
           brick2.contains(food) ||
           brick3.contains(food) ||
           brick4.contains(food)) {
-            setState(() {
-               food = food + 100;
-            });
-       
+        setState(() {
+          food = food + 100;
+        });
       }
     });
- }
+  }
 
   var dxn = 'down';
   void updateSnake() {
@@ -177,7 +169,7 @@ class _GameScreenState extends State<GameScreen> {
         default:
       }
       if (snakePos.last == food) {
-         eatAudio.open(Audio('assets/audios/eat.mp3'));
+        eatAudio.open(Audio('assets/audios/eat.mp3'));
         generateNewFood();
       } else {
         snakePos.removeAt(0);
@@ -187,60 +179,61 @@ class _GameScreenState extends State<GameScreen> {
 
   void _showGameOverScreen() {
     final theme = Theme.of(context);
-   
+
     showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return
-            
-
-              AlertDialog(
-                  backgroundColor: Colors.grey[900],
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(40),
-                      side: BorderSide(width:5,color: Colors.amber)),
-                  title: Center(
-                      child: Text('G A M E  O V E R',
-                          style: theme.textTheme.headline4!
-                              .copyWith(color: Colors.amber))),
-                  // content: Text('High score: $score',
-                  //     textAlign: TextAlign.center,
-                  //     style: theme.textTheme.bodyText2),
-                  actions: [
+          return AlertDialog(
+              backgroundColor: Colors.grey[900],
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(40),
+                  side: BorderSide(width: 5, color: Colors.amber)),
+              title: Center(
+                  child: Text('G A M E  O V E R',
+                      style: theme.textTheme.headline4!
+                          .copyWith(color: Colors.amber))),
+              // content: Text('High score: $score',
+              //     textAlign: TextAlign.center,
+              //     style: theme.textTheme.bodyText2),
+              actions: [
                 Center(
                   child: TextButton(
                       onPressed: () {
-                        showRewardedAd();
-                       
+                        showInterstitialAd();
+
                         setHighScore();
-                       Navigator.pop(context);
+                        Navigator.pop(context);
                       },
-                      child: Text('Try Again',
-                          style: theme.textTheme.bodyText2)),
+                      child:
+                          Text('Try Again', style: theme.textTheme.bodyText2)),
                 )
               ]);
         });
   }
+
   bool soundToggle = false;
   bool isPaused = false;
-  void pauseGame(){
+  void pauseGame() {
     setState(() {
       isPaused = true;
       //isStarted = false;
     });
   }
-   final assetsAudioPlayer = AssetsAudioPlayer();
-   final eatAudio = AssetsAudioPlayer();
+
+  final assetsAudioPlayer = AssetsAudioPlayer();
+  final eatAudio = AssetsAudioPlayer();
 
   @override
   void initState() {
     super.initState();
-   createRewardedAd();
-   
+    createInterstitialAd();
+
     BannerAd(
             size: AdSize.banner,
-            adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+            adUnitId: bottomAd == null
+                ? 'ca-app-pub-3940256099942544/6300978111'
+                : 'ca-app-pub-1282975341841237/2569125616',
             listener: BannerAdListener(onAdLoaded: (ad) {
               setState(() {
                 isLoaded = true;
@@ -253,21 +246,19 @@ class _GameScreenState extends State<GameScreen> {
         .load();
   }
 
-    @override
+  @override
   void dispose() {
     super.dispose();
     MyAds().interstitialAd!.dispose();
     rewardedAd!.dispose();
     bottomAd!.dispose();
-    
   }
-
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    double height= MediaQuery.of(context).size.height;
-     double width= MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
     return WillPopScope(
       onWillPop: () => _onBackPressed(context),
       child: Scaffold(
@@ -282,30 +273,38 @@ class _GameScreenState extends State<GameScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
-                          onTap:pauseGame,
-                          child: Icon(Icons.pause_circle,color: Colors.white,)),
+                            onTap: pauseGame,
+                            child: Icon(
+                              Icons.pause_circle,
+                              color: Colors.white,
+                            )),
                         Text('S C O R E : $score',
                             style: theme.textTheme.bodyText2),
                         Text('H I G H S C O R E : $highScore',
                             style: theme.textTheme.bodyText2),
-                            soundToggle?GestureDetector(
-                              onTap:(){
-                                setState(() {
-                                  soundToggle = false; 
-                                   assetsAudioPlayer.playOrPause();
-                                });
-                               
-                              },
-                              child: Icon(Icons.music_off,color: Colors.white,)):
-                             GestureDetector(
-                              onTap: (){
-                                setState(() {
-                                  soundToggle=true;
-                                  assetsAudioPlayer.playOrPause();
-                                });
-                                
-                              },
-                              child: Icon(Icons.music_note,color: Colors.white,))
+                        soundToggle
+                            ? GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    soundToggle = false;
+                                    assetsAudioPlayer.playOrPause();
+                                  });
+                                },
+                                child: Icon(
+                                  Icons.music_off,
+                                  color: Colors.white,
+                                ))
+                            : GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    soundToggle = true;
+                                    assetsAudioPlayer.playOrPause();
+                                  });
+                                },
+                                child: Icon(
+                                  Icons.music_note,
+                                  color: Colors.white,
+                                ))
                       ],
                     ),
                   ),
@@ -341,7 +340,8 @@ class _GameScreenState extends State<GameScreen> {
                                                   borderRadius:
                                                       BorderRadius.circular(5),
                                                   child: Container(
-                                                      color:  Color.fromARGB(255, 0, 132, 255)))));
+                                                      color: Color.fromARGB(
+                                                          255, 0, 132, 255)))));
                                     }
                                     if (brick1.contains(index)) {
                                       return Center(
@@ -398,10 +398,11 @@ class _GameScreenState extends State<GameScreen> {
                                               borderRadius:
                                                   BorderRadius.circular(5),
                                               child: Container(
-                                                  color: Color.fromARGB(255, 0, 0, 0))));
+                                                  color: Color.fromARGB(
+                                                      255, 0, 0, 0))));
                                     }
                                   })))),
-                                  SizedBox(height:20),
+                  SizedBox(height: 20),
                   Container(
                     height: isLoaded ? bottomAd!.size.height.toDouble() : 0,
                     width: isLoaded ? bottomAd!.size.width.toDouble() : 0,
@@ -409,17 +410,20 @@ class _GameScreenState extends State<GameScreen> {
                     child: isLoaded ? AdWidget(ad: bottomAd!) : SizedBox(),
                   )
                 ]),
-                isPaused?Container(
-                  alignment: Alignment(0,0),
-                  child: Container(
-                    height: height,
-                    width:width,
-                    color: Colors.black.withOpacity(0.4),
-                    child: GestureDetector(
-                      onTap: playGame,
-                      child: Icon(Icons.play_circle,size:50,color:Colors.white)),
-                  ),
-                ):Container(),
+                isPaused
+                    ? Container(
+                        alignment: Alignment(0, 0),
+                        child: Container(
+                          height: height,
+                          width: width,
+                          color: Colors.black.withOpacity(0.4),
+                          child: GestureDetector(
+                              onTap: playGame,
+                              child: Icon(Icons.play_circle,
+                                  size: 50, color: Colors.white)),
+                        ),
+                      )
+                    : Container(),
                 Container(
                     alignment: Alignment(0, 0),
                     child: isStarted
@@ -454,55 +458,52 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-    void createRewardedAd() {
-    RewardedAd.load(
-        adUnitId: 'ca-app-pub-3940256099942544/5224354917',
+  void createInterstitialAd() {
+    InterstitialAd.load(
+        adUnitId: interstitialAd == null
+            ? 'ca-app-pub-3940256099942544/1033173712'
+            : 'ca-app-pub-1282975341841237/8890582268',
         request: AdRequest(),
-        rewardedAdLoadCallback: RewardedAdLoadCallback(
-          onAdLoaded: (RewardedAd ad) {
-            print('$ad loaded.');
-            rewardedAd = ad;
-            _numRewardedLoadAttempts = 0;
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (InterstitialAd ad) {
+            print('$ad loaded');
+            interstitialAd = ad;
+            _numInterstitialLoadAttempts = 0;
+            interstitialAd!.setImmersiveMode(true);
           },
           onAdFailedToLoad: (LoadAdError error) {
-            print('RewardedAd failed to load: $error');
-            rewardedAd = null;
-            _numRewardedLoadAttempts += 1;
-            if (_numRewardedLoadAttempts < maxFailedLoadAttempts) {
-              createRewardedAd();
+            print('InterstitialAd failed to load: $error.');
+            _numInterstitialLoadAttempts += 1;
+            interstitialAd = null;
+            if (_numInterstitialLoadAttempts < maxFailedLoadAttempts) {
+              createInterstitialAd();
             }
           },
         ));
   }
 
-  void showRewardedAd() {
-    if (rewardedAd == null) {
-      print('Warning: attempt to show rewarded before loaded.');
+  void showInterstitialAd() {
+    if (interstitialAd == null) {
+      print('Warning: attempt to show interstitial before loaded.');
       return;
     }
-    rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (RewardedAd ad) =>
+    interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (InterstitialAd ad) =>
           print('ad onAdShowedFullScreenContent.'),
-      onAdDismissedFullScreenContent: (RewardedAd ad) {
+      onAdDismissedFullScreenContent: (InterstitialAd ad) {
         print('$ad onAdDismissedFullScreenContent.');
         ad.dispose();
-      createRewardedAd();
+        createInterstitialAd();
       },
-      onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+      onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
         print('$ad onAdFailedToShowFullScreenContent: $error');
         ad.dispose();
-        createRewardedAd();
+        createInterstitialAd();
       },
     );
-
-    rewardedAd!.setImmersiveMode(true);
-    rewardedAd!.show(
-        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-      print('$ad with reward $RewardItem(${reward.amount}, ${reward.type})');
-    });
-    rewardedAd = null;
+    interstitialAd!.show();
+    interstitialAd = null;
   }
-
 
   void _settingModalBottomSheet(context) {
     showModalBottomSheet(
